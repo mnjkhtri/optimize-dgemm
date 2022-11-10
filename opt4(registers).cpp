@@ -1,5 +1,7 @@
 #include <iostream>
 
+//Registers need O3 too
+
 //Macro for accessing (i,j)th element of a matrix
 #define X(i,j) X[(i)*N+(j)]
 #define Y(i,j) Y[(i)*N+(j)]
