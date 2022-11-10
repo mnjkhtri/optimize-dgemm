@@ -78,7 +78,7 @@ void kernel(double *X, double *Y, double *Z)
         //Loop over column
         for (size_t j = 0; j < BLOCK; j += 4)
         {
-            finddot4by4(&Xp[i*BLOCK], &Y(0,j), &Z(i,j));
+            finddot4by4(&Xp[i*BLOCK], &Yp[BLOCK*j], &Z(i,j));
         }
     }
 }
@@ -124,8 +124,8 @@ void PackY(double *Y, double *Yp)
 #undef X
 #define X(i,j) X[i*BLOCK+j]
 
-// #undef Y
-// #define Y(i,j) Y[i*4+j]
+#undef Y
+#define Y(i,j) Y[i*4+j]
 
 //A type alias to accomodate ymm registers
 typedef union
