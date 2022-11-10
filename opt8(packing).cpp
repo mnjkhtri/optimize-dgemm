@@ -11,7 +11,7 @@ static size_t N0;
 #define Z(i,j) Z[(i)*(N0)+(j)]
 
 //The block size of 64, 128, 256, 512 gives optimum performance
-#define BLOCK (128)
+#define BLOCK (256)
 
 /*Function to
     Z[4*4] += X[4*N] x Y[N*4]
