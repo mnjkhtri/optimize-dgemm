@@ -1,5 +1,7 @@
 //"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64"
 
+//g++ -O3 -Wall -march=native main.cpp "opt8(packing).cpp"
+
 #include <iostream>
 #include <assert.h>
 #include <fstream>
@@ -39,6 +41,10 @@ static void benchmark();
 int main()
 {
         std::ifstream inFile("buffer.dat", std::ios::in|std::ios::binary);
+        if (!inFile)
+        {
+                std::cout << "Run python first\n";
+        }
         assert(inFile);
         for (size_t i = 0; i < N; ++i)
                 for (size_t j = 0; j < N; ++j)
@@ -67,7 +73,7 @@ static void benchmark()
         auto start_time = std::chrono::high_resolution_clock::now();
 
         //Call your function here:
-        naive((double*)X, (double*)Y, (double*)Z, N);
+        //naive((double*)X, (double*)Y, (double*)Z, N);
         //unrolling((double*)X, (double*)Y, (double*)Z, N);
         //inlining((double*)X, (double*)Y, (double*)Z, N);
         //registers((double*)X, (double*)Y, (double*)Z, N);
