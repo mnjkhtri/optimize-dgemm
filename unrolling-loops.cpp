@@ -30,6 +30,7 @@ static void finddot(double *X, double *Y, double *Z, size_t N)
 {
     for (size_t k = 0; k < N; ++k)
     {
+        
         Z(0,0) += X(0,k) * Y(k,0); 
     }
 }
