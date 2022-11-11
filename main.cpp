@@ -1,6 +1,6 @@
 //"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64"
 
-//g++ -O3 -Wall -march=native main.cpp "opt8(packing).cpp"
+//g++ -O3 -march=native main.cpp smoothen.cpp && ./a.out
 
 #include <iostream>
 #include <assert.h>
@@ -12,8 +12,13 @@
 
 #define CHECK
 
-//To multiply X[N*N] x Y[N*N]
-const size_t N = 1024;
+//#define DEBUG
+
+#ifdef DEBUG
+        const size_t N = 8;
+#else
+        const size_t N = 512;
+#endif
 
 // double X[N*N];
 // double Y[N*N];
@@ -23,6 +28,7 @@ const size_t N = 1024;
 //Alignment required for vector accesses (opt6) [probably 64 bytes alignment for cache blocks]
 alignas(64) double X[N*N];
 alignas(64) double Y[N*N];
+alignas(64) double Yc[N*N];
 alignas(64) double Z[N*N];
 alignas(64) double Z_o[N*N];
 
@@ -58,8 +64,14 @@ int main()
                         inFile.read((char*)&Z_o[i*N+j], sizeof(double));
         inFile.close();
 
+        //Swigling the column major Y matrix so as to access 4 at a time through AVX's
+        for (size_t i = 0; i < N; i += 4)
+                for (size_t j = 0; j < N; ++j)
+                        //For values of ij will restructure the ijth 4*1 block
+                        for (size_t iy = 0; iy < 4; ++iy)
+                                Yc[(i*N)+(j*4)+iy] = Y[(i*N)+(j)+iy*N];
 
-        for (unsigned int i = 0; i < 1; ++i)
+        for (unsigned int i = 0; i < 10; ++i)
         {
                 benchmark();
         }
@@ -84,11 +96,11 @@ static void benchmark()
         //vectors((double*)X, (double*)Y, (double*)Z, N);
         //blocking((double*)X, (double*)Y, (double*)Z, N);
         //packing((double*)X, (double*)Y, (double*)Z, N);
-        finalboss((double*)X, (double*)Y, (double*)Z, N);
+        finalboss((double*)X, (double*)Yc, (double*)Z, N);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto execution_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time-start_time);
-        std::cout << std::setw(8) << no_of_totals*1e3/execution_time.count() << "    MFLOPS: ";
+        std::cout << std::setw(4) << no_of_totals*1e3/execution_time.count() << " MFLOPS: ";
 
         #ifdef CHECK
 
