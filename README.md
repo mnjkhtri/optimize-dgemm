@@ -13,3 +13,4 @@ Must's:
 5. Another layer of blocking when matrices dont fit in LL caches (L2: 256 KB, L3: 8MB)
 6. For extra blocking, packing is necessary for optimal performance
 7. Packing also paves path for multithreading
+8. Valgrind's result is worth looking into (D1 misses especially)
