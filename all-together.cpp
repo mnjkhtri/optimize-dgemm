@@ -11,7 +11,7 @@ static size_t N0;
 #define Z(i,j) Z[(i)*(N0)+(j)]
 
 //Three 36 size block of doubles fit into the L1 cache
-#define BLOCK (1024)
+#define BLOCK (32)
 
 #define BLOCK_X (4)
 //Currently BLOCK_Y must be 8
@@ -31,9 +31,9 @@ void finalboss(double *X, double *Y, double *Z, size_t N)
     N0 = N;
     
     //Make sure that the memory is aligned
-    assert(reinterpret_cast<std::uintptr_t>(X)%32 == 0);
-    assert(reinterpret_cast<std::uintptr_t>(Y)%32 == 0);
-    assert(reinterpret_cast<std::uintptr_t>(Z)%32 == 0);
+    // assert(reinterpret_cast<std::uintptr_t>(X)%32 == 0);
+    // assert(reinterpret_cast<std::uintptr_t>(Y)%32 == 0);
+    // assert(reinterpret_cast<std::uintptr_t>(Z)%32 == 0);
 
     //Before calling kernel, need to confirm that block size is 256 or less else the stack wont handle
     //assert(BLOCK < 512);
@@ -58,6 +58,8 @@ void PackY(double *Y, double *Yp);
 
 void kernel(double *X, double *Y, double *Z)
 {
+    //Latest: turns out X does not need packing (not critically at least)
+
     //The block matrices are part of large entire matrices so memory accesses are scattered
     alignas(64) double Xp[BLOCK*BLOCK];
     alignas(64) double Yp[BLOCK*BLOCK];
@@ -68,7 +70,7 @@ void kernel(double *X, double *Y, double *Z)
         PackX(&X(i,0), &Xp[i*BLOCK]);
     }
     
-    //Pack Y[BLOCK*BLOCK] into Yp[BLOCK*BLOCK]; one loop preserves matricity of Y[BLOCK*4] while destroys the submatricity
+    //Pack Y[BLOCK*BLOCK] into Yp[BLOCK*BLOCK]; one loop preserves matricity of Y[BLOCK*8] while destroys the submatricity
     for (size_t j = 0; j < BLOCK; j += 8)
     {
         PackY(&Y(0,j), &Yp[BLOCK*j]);
@@ -81,10 +83,9 @@ void kernel(double *X, double *Y, double *Z)
         for (size_t j = 0; j < BLOCK; j += BLOCK_Y)
         {
         finddot4by4(&Xp[i*BLOCK], &Yp[j*BLOCK], &Z(i,j));
-        //finddot4by4(&Xp[i*BLOCK], &Yp[j*BLOCK], &Z(i,j));
-
+        //finddot4by4(&X(i,0), &Yp[j*BLOCK], &Z(i,j));
         //finddot4by4(&Xp[i*BLOCK], &Y(0,j), &Z(i,j));
-        // finddot4by4(&X(i,0), &Y(0,j), &Z(i,j));
+        //finddot4by4(&X(i,0), &Y(0,j), &Z(i,j));
         }
     }
 }
@@ -98,49 +99,52 @@ void PackX(double *X, double *Xp)
     double *x3j_pntr = &X(3,0);
 
     //Offset pointers to packed arrays where the rows ought to go
-    // double *Xp0 = Xp;
-    // double *Xp1 = Xp+BLOCK;
-    // double *Xp2 = Xp+2*BLOCK;
-    // double *Xp3 = Xp+3*BLOCK;
+    double *Xp0 = Xp;
+    double *Xp1 = Xp+BLOCK;
+    double *Xp2 = Xp+2*BLOCK;
+    double *Xp3 = Xp+3*BLOCK;
 
     for (size_t j = 0; j < BLOCK; j += 1)
     {
-        // *Xp0++ = *x0j_pntr++;
-        // *Xp1++ = *x1j_pntr++;
-        // *Xp2++ = *x2j_pntr++;
-        // *Xp3++ = *x3j_pntr++;
+        *Xp0++ = *x0j_pntr++;
+        *Xp1++ = *x1j_pntr++;
+        *Xp2++ = *x2j_pntr++;
+        *Xp3++ = *x3j_pntr++;
 
-        *Xp++ = *x0j_pntr++;
-        *Xp++ = *x1j_pntr++;
-        *Xp++ = *x2j_pntr++; 
-        *Xp++ = *x3j_pntr++;
+        // *Xp++ = *x0j_pntr++;
+        // *Xp++ = *x1j_pntr++;
+        // *Xp++ = *x2j_pntr++; 
+        // *Xp++ = *x3j_pntr++;
     }
 }
 
 void PackY(double *Y, double *Yp)
 {
+    double *Yp1 = Yp+4*BLOCK;
     //We will move row after row placing the four elements in the row to the packed array
     for (size_t i = 0; i < BLOCK; i += 1)
     {
-        double *yij_pntr = &Y(i,0);
+        double *yij1_pntr = &Y(i,0);
+        double *yij2_pntr = &Y(i,4);
 
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
-        *Yp++ = *yij_pntr++;
+        *Yp++ = *yij1_pntr++;
+        *Yp++ = *yij1_pntr++;
+        *Yp++ = *yij1_pntr++;
+        *Yp++ = *yij1_pntr++;
+
+        *Yp1++ = *yij2_pntr++;
+        *Yp1++ = *yij2_pntr++;
+        *Yp1++ = *yij2_pntr++;
+        *Yp1++ = *yij2_pntr++;
     }
 }
 
 #undef X
-//#define X(i,j) X[i*BLOCK+j]
-#define X(i,j) X[(j*BLOCK_X)+i]
+#define X(i,j) X[i*BLOCK+j]
+// #define X(i,j) X[(j*BLOCK_X)+i]
 
-#undef Y
-#define Y(i,j) Y[i*BLOCK_Y+j]
+// #undef Y
+// #define Y(i,j) Y[i*BLOCK_Y+j]
 
 //We have to multiply Z[BLOCK_X*BLOCK_Y] = X[BLOCK_Y*BLOCK] x Y[BLOCK*BLOCK_Y]
 static void finddot4by4(double *X, double *Y, double *Z)
@@ -154,9 +158,9 @@ static void finddot4by4(double *X, double *Y, double *Z)
     for (size_t k = 0; k < BLOCK; ++k)
     {
         __m256d yk0_k1_k2_k3_reg;
-        yk0_k1_k2_k3_reg = _mm256_load_pd(&Y(k,0));
+        yk0_k1_k2_k3_reg = _mm256_load_pd(&Y[k*4]);
         __m256d yk4_k5_k6_k7_reg;
-        yk4_k5_k6_k7_reg = _mm256_load_pd(&Y(k,4));
+        yk4_k5_k6_k7_reg = _mm256_load_pd(&Y[4*BLOCK+k*4]);
         //For any value of k; we are supposed to update Z[BLOCK_X*BLOCK_Y] with one slice of each X and Y in their direction of BLOCK
         for (size_t i = 0; i < BLOCK_X; i += 1)
         {
