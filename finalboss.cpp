@@ -11,7 +11,7 @@ static size_t N0;
 #define Z(i,j) Z[(i)*(N0)+(j)]
 
 //Three 36 size block of doubles fit into the L1 cache
-#define BLOCK (32)
+#define BLOCK (1024)
 
 #define BLOCK_X (4)
 //Currently BLOCK_Y must be 8
@@ -68,7 +68,6 @@ void kernel(double *X, double *Y, double *Z)
         PackX(&X(i,0), &Xp[i*BLOCK]);
     }
     
-
     //Pack Y[BLOCK*BLOCK] into Yp[BLOCK*BLOCK]; one loop preserves matricity of Y[BLOCK*4] while destroys the submatricity
     for (size_t j = 0; j < BLOCK; j += 8)
     {
@@ -82,6 +81,8 @@ void kernel(double *X, double *Y, double *Z)
         for (size_t j = 0; j < BLOCK; j += BLOCK_Y)
         {
         finddot4by4(&Xp[i*BLOCK], &Yp[j*BLOCK], &Z(i,j));
+        //finddot4by4(&Xp[i*BLOCK], &Yp[j*BLOCK], &Z(i,j));
+
         //finddot4by4(&Xp[i*BLOCK], &Y(0,j), &Z(i,j));
         // finddot4by4(&X(i,0), &Y(0,j), &Z(i,j));
         }
@@ -97,17 +98,22 @@ void PackX(double *X, double *Xp)
     double *x3j_pntr = &X(3,0);
 
     //Offset pointers to packed arrays where the rows ought to go
-    double *Xp0 = Xp;
-    double *Xp1 = Xp+BLOCK;
-    double *Xp2 = Xp+2*BLOCK;
-    double *Xp3 = Xp+3*BLOCK;
+    // double *Xp0 = Xp;
+    // double *Xp1 = Xp+BLOCK;
+    // double *Xp2 = Xp+2*BLOCK;
+    // double *Xp3 = Xp+3*BLOCK;
 
     for (size_t j = 0; j < BLOCK; j += 1)
     {
-        *Xp0++ = *x0j_pntr++;
-        *Xp1++ = *x1j_pntr++;
-        *Xp2++ = *x2j_pntr++;
-        *Xp3++ = *x3j_pntr++;
+        // *Xp0++ = *x0j_pntr++;
+        // *Xp1++ = *x1j_pntr++;
+        // *Xp2++ = *x2j_pntr++;
+        // *Xp3++ = *x3j_pntr++;
+
+        *Xp++ = *x0j_pntr++;
+        *Xp++ = *x1j_pntr++;
+        *Xp++ = *x2j_pntr++; 
+        *Xp++ = *x3j_pntr++;
     }
 }
 
@@ -130,7 +136,8 @@ void PackY(double *Y, double *Yp)
 }
 
 #undef X
-#define X(i,j) X[i*BLOCK+j]
+//#define X(i,j) X[i*BLOCK+j]
+#define X(i,j) X[(j*BLOCK_X)+i]
 
 #undef Y
 #define Y(i,j) Y[i*BLOCK_Y+j]

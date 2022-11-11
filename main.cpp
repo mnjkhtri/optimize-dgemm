@@ -34,6 +34,7 @@ extern void more(double *X, double *Y, double *Z, size_t N);
 extern void vectors(double *X, double *Y, double *Z, size_t N);
 extern void blocking(double *X, double *Y, double *Z, size_t N);
 extern void packing(double *X, double *Y, double *Z, size_t N);
+extern void finalboss(double *X, double *Y, double *Z, size_t N);
 
 //Function to bench the MFLOPS
 static void benchmark();
@@ -52,11 +53,13 @@ int main()
         for (size_t i = 0; i < N; ++i)
                 for (size_t j = 0; j < N; ++j)
                         inFile.read((char*)&Y[i*N+j], sizeof(double));
-        for (size_t i = 0; i < N; ++i)
+         for (size_t i = 0; i < N; ++i)
                 for (size_t j = 0; j < N; ++j)
                         inFile.read((char*)&Z_o[i*N+j], sizeof(double));
+        inFile.close();
 
-        for (unsigned int i = 0; i < 1000; ++i)
+
+        for (unsigned int i = 0; i < 1; ++i)
         {
                 benchmark();
         }
@@ -80,7 +83,8 @@ static void benchmark()
         //more((double*)X, (double*)Y, (double*)Z, N);
         //vectors((double*)X, (double*)Y, (double*)Z, N);
         //blocking((double*)X, (double*)Y, (double*)Z, N);
-        packing((double*)X, (double*)Y, (double*)Z, N);
+        //packing((double*)X, (double*)Y, (double*)Z, N);
+        finalboss((double*)X, (double*)Y, (double*)Z, N);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto execution_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time-start_time);
@@ -92,8 +96,11 @@ static void benchmark()
         {
                 for (size_t j = 0; j < N; ++j)
                 {
-                        if (abs(Z[i*N+j] - Z_o[i*N+j]) > 1e-3)
+                        if (std::abs(Z[i*N+j] - Z_o[i*N+j]) > 1e-3)
+                        {
                                 std::cout << "Mismatch " << "(" << i << "," << j << ")" << Z[i*N+j] << " != " << Z_o[i*N+j] << std::endl;
+                                return;
+                        }
                 }
         }
         std::cout << "Match\n";
