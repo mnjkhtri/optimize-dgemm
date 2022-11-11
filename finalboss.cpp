@@ -10,8 +10,8 @@ static size_t N0;
 #define Y(i,j) Y[(i)*(N0)+(j)]
 #define Z(i,j) Z[(i)*(N0)+(j)]
 
-//The block size of 64, 128, 256, 512 gives optimum performance
-#define BLOCK (8)
+//64 bytes will fit into L2 cache (100 bytes was the limit), 32 (or even 16 to be safest) seems to do the best here
+#define BLOCK (16)
 
 #define BLOCK_X (4)
 //Currently BLOCK_Y must be 8
@@ -37,7 +37,7 @@ void finalboss(double *X, double *Y, double *Z, size_t N)
     assert(reinterpret_cast<std::uintptr_t>(Z)%32 == 0);
 
     //Before calling kernel, need to confirm that block size is 256 or less else the stack wont handle
-    assert(BLOCK < 512);
+    //assert(BLOCK < 512);
 
     //The ii and jj select the block that will be read to the fullest (which matrix's block is that is decided by the inner loop)
     for (size_t i = 0; i < N; i += BLOCK)
