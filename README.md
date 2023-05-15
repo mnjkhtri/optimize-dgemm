@@ -12,7 +12,7 @@ Considerations:
 
 3. SIMD instructions especially FMAs triple the performance. Need to swiggle the matrix so they are fetched in contiguous order
 
-4. Outermost layer is multithreaded so there is no sharing of memory between cores. Safe from cache coherency and locking issues. The matrix is calculated in vertical splits by each thread. My CPU is 4 core, 8 threads (intel's hyperthreading)
+4. Outermost layer is multithreaded so there is no sharing of memory between cores. Safe from cache coherency and locking issues. The matrix is calculated in vertical splits by each thread. My CPU is 4 core, 8 threads (intel's hyperthreading). Currently using pthreads
 
 5. Valgrind's result is worth looking into (D1 misses especially): valgrind --tool=cachegrind ./a.out
 
