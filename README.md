@@ -21,6 +21,7 @@ Currently achieves a performance of 70ish to 90ish GFLOPS in head-on battle betw
 6. Up next: Doing CUDA
 
 References:
+
 https://www.cs.utexas.edu/~flame/pubs/GotoTOMS_revision.pdf
 
 https://www.cs.utexas.edu/users/flame/pubs/blis3_ipdps14.pdf
