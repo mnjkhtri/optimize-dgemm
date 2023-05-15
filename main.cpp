@@ -1,4 +1,4 @@
-//g++ -O3 -march=native main.cpp smoothen.cpp && ./a.out
+//g++ -O3 -march=native *.c && ./a.out
 
 #include <iostream>
 #include <assert.h>
@@ -68,10 +68,9 @@ static void benchmark()
         long long no_of_totals = no_of_fmuls + no_of_fadds;
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        // naive((double*)X, (double*)Y, (double*)Z, N)
+        // naive((double*)X, (double*)Y, (double*)Z, N);
         // simdavx256((double*)X, (double*)Yc, (double*)Z, N);
-        multithreading((double*)X, (double*)Yc, (double*)Z, N);
-
+        // multithreading((double*)X, (double*)Yc, (double*)Z, N);
 
         auto end_time = std::chrono::high_resolution_clock::now();
         auto execution_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time-start_time);
