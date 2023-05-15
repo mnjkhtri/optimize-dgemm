@@ -26,7 +26,7 @@ void simdavx256(double *X, double *Y, double *Z, int N)
                 for (int ii = 0; ii < mc; ++ii)
                 {
                     __m256d x_reg = _mm256_broadcast_sd(&X[i*N+k + ii*N+kk]);
-                    //x_reg is mc*1 slice of X
+                    //x_reg is mc*1 slice of X from a double
 
                     //Zm[ii][0] - Zm[ii][1] form a 1*nc slice of Z:
                     Zm[ii][0] = _mm256_fmadd_pd(x_reg, y0_reg, Zm[ii][0]);
